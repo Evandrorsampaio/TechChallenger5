@@ -69,15 +69,15 @@ A LLM **não classifica** o risco: ela só lê os números já calculados e os e
          │               │                  │
    ┌─────▼─────┐  ┌──────▼───────────┐ ┌────▼──────────────────┐
    │ SQLite    │  │ lib/ml           │ │ RAG                   │
-   │ prontuário│  │ LogReg / RF      │ │ CPU: lexical, subset  │
-   │ log_acesso│  │ explicabilidade  │ │ Colab: Chroma MiniLM  │
+   │ prontuário│  │ LogReg / RF      │ │ Local: lexical        │
+   │ log_acesso│  │ explicabilidade  │ │ Docker/Colab: Chroma  │
    │ predicoes │  └──────────────────┘ └───────────────────────┘
    │ _ml       │
    └───────────┘
          │
    ┌─────▼──────────────────────────────────────────────┐
-   │ LLM: FakeChatModel (CPU/Docker) ou                 │
-   │      Llama 3.2 3B + QLoRA (Colab, GPU)             │
+   │ LLM: FakeChatModel (local) ou                      │
+   │      Llama 3.2 3B + QLoRA (Docker e Colab)         │
    └────────────────────────────────────────────────────┘
 ```
 
@@ -162,28 +162,16 @@ python scripts/app.py
 
 Abra http://localhost:7860. Escolha uma paciente na barra lateral (nomes gerados pelo Faker). A aba **Risco Gestacional (ML)** executa a jornada principal; a aba **Violência** cobre o contexto de segurança.
 
-### 5. Docker
+### 5. Docker (Llama + Chroma)
 
-O `docker compose up` da raiz continua no perfil de CPU, com `FakeChatModel` e o RAG lexical. O mesmo fluxo do Colab (Llama 3.2 3B + índice Chroma) é outro compose.
-
-**CPU, chat de demonstração**
-
-```text
-docker build -t techchallenger4-demo:cpu .
-docker run --rm techchallenger4-demo:cpu
-docker compose up --build
-```
-
-A imagem `demo-cpu` não inclui o Llama.
-
-**Colab no Docker (Llama + Chroma)**
+O único perfil de contêiner é o `Dockerfile`: Llama 3.2 3B e o índice Chroma. O Gradio local sem Docker (`python scripts/app.py`) continua com `FakeChatModel` e RAG lexical.
 
 1. Aceite a licença de `meta-llama/Llama-3.2-3B-Instruct` na conta Hugging Face e grave o token em `.env` (`HF_TOKEN=`).
 2. A imagem copia `files/` (Chroma, adapter em `files/finetune` e `files/hospital.db`). Sem `adapter_final` o contêiner sobe o modelo base.
 3. Suba com GPU NVIDIA visível no Docker Desktop (WSL2):
 
 ```text
-docker compose -f docker-compose.full.yml -f docker-compose.gpu.yml up --build
+docker compose -f docker-compose.yml -f docker-compose.gpu.yml up --build
 ```
 
 Abra http://localhost:7860. A primeira subida baixa o Llama e o modelo de embedding; o cache fica no volume `hf-cache`.
@@ -191,7 +179,7 @@ Abra http://localhost:7860. A primeira subida baixa o Llama e o modelo de embedd
 Sem GPU, o mesmo arquivo sobe o Llama em CPU (lento, sem 4-bit):
 
 ```text
-docker compose -f docker-compose.full.yml up --build
+docker compose up --build
 ```
 
 Na máquina, sem Docker, `python scripts/app_full.py` lê a mesma pasta `files/`: índice em `files/chroma`, adapter em `files/finetune` e prontuário em `files/hospital.db`. No contêiner esses caminhos são `/app/files/...`.
@@ -259,8 +247,8 @@ Abra o `RELATORIO_TECNICO.html` gerado no Chrome e use Imprimir → Salvar como 
 ## Limitações
 
 1. **Sem validação clínica.** O dataset tabular e os pares de perguntas e respostas do fine-tuning são sintéticos. As métricas não representam desempenho em pacientes reais.
-2. **LLM no perfil CPU/Docker padrão.** `docker compose up` usa o `FakeChatModel`, um dublê determinístico com respostas fixas por padrão de texto. O Llama 3.2 3B com QLoRA sobe no compose `docker-compose.full.yml` (GPU NVIDIA) ou no Colab.
-3. **RAG no perfil CPU/Docker.** Usa busca lexical sobre um recorte pequeno dos protocolos ([`artifacts/rag/protocolos_subset.json`](artifacts/rag/protocolos_subset.json)). O índice Chroma completo (1392 trechos de 39 PDFs) fica no Google Drive, fora do Git.
+2. **LLM local sem Docker.** `python scripts/app.py` usa o `FakeChatModel`, um dublê determinístico. O contêiner (`Dockerfile`) e o Colab carregam o Llama 3.2 3B com QLoRA.
+3. **RAG local sem Docker.** `scripts/app.py` usa busca lexical sobre um recorte dos protocolos ([`artifacts/rag/protocolos_subset.json`](artifacts/rag/protocolos_subset.json)). O Docker e o Colab usam o índice Chroma (1392 trechos de 39 PDFs) em `files/chroma`.
 4. **Baixa precisão do classificador.** O limiar prioriza o recall; cerca de três em cada quatro alertas de alto risco são falsos positivos.
 5. **Auditoria por hash.** `predicoes_ml` guarda o hash das variáveis de entrada, não os valores.
 6. **Sem criptografia at-rest e sem autenticação federada.** O campo `usuario` é simples; em produção viria de OAuth/SSO.
@@ -274,7 +262,9 @@ Abra o `RELATORIO_TECNICO.html` gerado no Chrome e use Imprimir → Salvar como 
 TechChallenger4/
 ├── README.md                        ← você está aqui
 ├── RELATORIO_TECNICO.md / .html     ← relatório técnico da Fase 5
-├── Dockerfile / docker-compose.yml  ← perfil demo-cpu
+├── Dockerfile                       ← Llama 3.2 3B + Chroma
+├── docker-compose.yml               ← sobe o Gradio desse perfil
+├── docker-compose.gpu.yml           ← overlay NVIDIA
 ├── requirements*.txt                ← dependências (base, ML, LLM)
 │
 ├── lib/
@@ -306,11 +296,11 @@ TechChallenger4/
 | ML tabular | scikit-learn (regressão logística, random forest, dummy, regra clínica) |
 | Explicabilidade | coeficientes lineares, importância de variáveis, SHAP (opcional) |
 | Orquestração | LangChain + LangGraph |
-| LLM | `FakeChatModel` (CPU/Docker); meta-llama/Llama-3.2-3B-Instruct + QLoRA (Colab) |
-| Embeddings / vector store | paraphrase-multilingual-MiniLM-L12-v2 + Chroma (Colab) |
+| LLM | `FakeChatModel` (local, sem Docker); meta-llama/Llama-3.2-3B-Instruct + QLoRA (Docker e Colab) |
+| Embeddings / vector store | paraphrase-multilingual-MiniLM-L12-v2 + Chroma (Docker e Colab) |
 | Base estruturada | SQLite |
 | Interface | Gradio Blocks |
-| Execução | CPU local, Docker (`demo-cpu`) ou Google Colab com GPU |
+| Execução | CPU local (`scripts/app.py`), Docker (`Dockerfile`) ou Google Colab com GPU |
 
 ---
 

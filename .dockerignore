@@ -7,7 +7,7 @@ __pycache__
 .pytest_cache
 *.ipynb
 .env
-adapters
-checkpoints
-chroma
+/adapters
+/checkpoints
+/chroma
 .cursor

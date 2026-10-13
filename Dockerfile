@@ -1,11 +1,13 @@
-# Perfil demo-cpu: sklearn + FakeChatModel. Sem CUDA, sem Llama, sem HF_TOKEN.
-FROM python:3.12-slim AS runtime
+# Llama 3.2 3B + Chroma. Sem FakeChatModel.
+# torch CUDA vem da imagem base; o pip abaixo não reinstala torch.
+FROM pytorch/pytorch:2.6.0-cuda12.4-cudnn9-runtime
 
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
-    PERFIL_EXECUCAO=demo-cpu \
-    ML_RISCO_HABILITADO=0 \
-    PIP_DISABLE_PIP_VERSION_CHECK=1
+    PERFIL_EXECUCAO=full-gpu \
+    PIP_DISABLE_PIP_VERSION_CHECK=1 \
+    HF_HOME=/cache/huggingface \
+    HUGGINGFACE_HUB_CACHE=/cache/huggingface
 
 WORKDIR /app
 
@@ -13,19 +15,24 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
         build-essential \
     && rm -rf /var/lib/apt/lists/*
 
-COPY requirements.txt requirements-ml.txt ./
-RUN pip install --no-cache-dir -r requirements.txt -r requirements-ml.txt
+COPY requirements.txt requirements-ml.txt requirements-llm.txt requirements-full.txt ./
+RUN pip install --no-cache-dir --upgrade-strategy only-if-needed \
+        -r requirements.txt \
+        -r requirements-ml.txt \
+        -r requirements-llm.txt \
+        -r requirements-full.txt \
+    && python -c "import torch; assert torch.version.cuda, 'pip trocou o torch CUDA por um wheel de CPU'"
 
 COPY lib ./lib
 COPY scripts ./scripts
 COPY referencias ./referencias
-COPY tests/conftest.py ./tests/conftest.py
 COPY pyproject.toml .env.example ./
 COPY artifacts/metrics ./artifacts/metrics
 COPY artifacts/models ./artifacts/models
 COPY artifacts/data ./artifacts/data
 COPY artifacts/rag ./artifacts/rag
+COPY files ./files
 
 EXPOSE 7860
 
-CMD ["python", "scripts/run_demo.py"]
+CMD ["python", "scripts/app_full.py"]

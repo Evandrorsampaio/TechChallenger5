@@ -1,12 +1,26 @@
+# Llama 3.2 3B + Chroma.
+# GPU: docker compose -f docker-compose.yml -f docker-compose.gpu.yml up --build
+# Sem GPU o processo ainda carrega o Llama de verdade, em CPU, e fica lento.
 services:
-  demo:
+  app:
     build: .
+    image: techchallenger4-full:gpu
     ports:
       - "7860:7860"
+    env_file:
+      - path: .env
+        required: false
     environment:
-      PERFIL_EXECUCAO: demo-cpu
-      HOSPITAL_DB_PATH: /app/artifacts/demo/hospital.db
+      PERFIL_EXECUCAO: full-gpu
+      HOSPITAL_DB_PATH: /app/files/hospital.db
+      CHROMA_PATH: /app/files/chroma
+      ADAPTER_DIR: /app/files/finetune
       ARTIFACTS_DIR: /app/artifacts
+      HF_HOME: /cache/huggingface
+      HUGGINGFACE_HUB_CACHE: /cache/huggingface
     volumes:
       - ./artifacts:/app/artifacts
-    command: ["python", "scripts/app.py"]
+      - hf-cache:/cache/huggingface
+
+volumes:
+  hf-cache:

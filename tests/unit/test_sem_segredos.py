@@ -30,7 +30,7 @@ def test_repositorio_sem_segredos():
         if not path.is_file():
             continue
         if path.suffix.lower() not in {'.py', '.yml', '.yaml', '.toml', '.json'}:
-            if path.name not in {'.env.example', 'Dockerfile', '.gitignore', 'requirements.txt', 'requirements-ml.txt', 'requirements-llm.txt'}:
+            if path.name not in {'.env.example', 'Dockerfile', '.gitignore', 'requirements.txt', 'requirements-ml.txt', 'requirements-llm.txt', 'requirements-full.txt'}:
                 continue
         try:
             texto = path.read_text(encoding='utf-8')

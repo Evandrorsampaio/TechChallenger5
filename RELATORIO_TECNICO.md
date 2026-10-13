@@ -70,8 +70,8 @@ Limiar operacional 0,278 **não** é 0,5. Explicabilidade no CPU: `coef_linear` 
 
 | Perfil | Mecanismo | `doc_id` |
 |---|---|---|
-| **demo-cpu / Docker** | Retriever lexical [`lib/rag_local.py`](lib/rag_local.py) sobre [`artifacts/rag/protocolos_subset.json`](artifacts/rag/protocolos_subset.json) | arquivos `.pdf` estáveis (recorte didático) |
-| Colab / GPU | Chroma + MiniLM; notebook [`06_indexar_protocolos.ipynb`](06_indexar_protocolos.ipynb) com `CHUNK_SIZE=1000`, overlap 200 | índice fora do Git (Drive) |
+| **Local, sem Docker** | Retriever lexical [`lib/rag_local.py`](lib/rag_local.py) sobre [`artifacts/rag/protocolos_subset.json`](artifacts/rag/protocolos_subset.json) | arquivos `.pdf` estáveis (recorte didático) |
+| **Docker e Colab** | Chroma + MiniLM; [`Dockerfile`](Dockerfile) copia `files/chroma`; notebook [`06_indexar_protocolos.ipynb`](06_indexar_protocolos.ipynb) com `CHUNK_SIZE=1000`, overlap 200 | `files/chroma` |
 
 A ferramenta `buscar_protocolo` e o nó RAG de `risco_ml` usam o mesmo retriever injetado. Sem índice, o fluxo devolve `retrieved_sources: []` sem abortar.
 
@@ -79,8 +79,8 @@ A ferramenta `buscar_protocolo` e o nó RAG de `risco_ml` usam o mesmo retriever
 
 ## 6. LLM
 
-- **CPU/Docker:** `FakeChatModel` — declara o modo; não inventa métricas (validador em `lib/ml/llm_contract.py`).
-- **Colab:** Llama 3.2 3B Instruct + adapter QLoRA (Fase 5). Human-in-the-loop: o profissional confirma conduta; o sistema não prescreve.
+- **Local, sem Docker:** `FakeChatModel` — declara o modo; não inventa métricas (validador em `lib/ml/llm_contract.py`).
+- **Docker e Colab:** Llama 3.2 3B Instruct + adapter QLoRA (Fase 5), via [`Dockerfile`](Dockerfile). Human-in-the-loop: o profissional confirma conduta; o sistema não prescreve.
 
 ---
 
@@ -90,7 +90,7 @@ A ferramenta `buscar_protocolo` e o nó RAG de `risco_ml` usam o mesmo retriever
 - 5 grafos LangGraph (Triagem, Violência, Obstétrico, Prevenção, `risco_ml`)
 - 6 abas Gradio (título **Guardiã AI**)
 - SQLite: prontuário, `log_acesso` e `predicoes_ml` (hash de features, sem payload clínico em claro)
-- Docker `demo-cpu`: sklearn + FakeChatModel, sem Llama
+- Docker: [`Dockerfile`](Dockerfile), Llama 3.2 3B + Chroma
 
 ```mermaid
 flowchart TB
@@ -123,10 +123,10 @@ flowchart TB
 |---|---|
 | Git + README | este repositório |
 | UI | Gradio, `python scripts/app.py` |
-| Dockerfile | perfil `demo-cpu` |
+| Dockerfile | [`Dockerfile`](Dockerfile), Llama + Chroma |
 | Relatório técnico | este arquivo + HTML |
 | Vídeo ≤ 15 min | **pendente** (humano) |
-| RAG com citação | subset CPU + Chroma no Colab |
+| RAG com citação | subset local + Chroma no Docker e no Colab |
 
 ---
 

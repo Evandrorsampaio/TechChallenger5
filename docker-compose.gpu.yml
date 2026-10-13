@@ -1,4 +1,5 @@
 # Acrescente este arquivo quando o Docker enxergar a GPU NVIDIA.
+# docker compose -f docker-compose.yml -f docker-compose.gpu.yml up --build
 services:
   app:
     gpus: all
