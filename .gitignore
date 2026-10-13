@@ -1,0 +1,100 @@
+# ===== Segredos / credenciais =====
+.env
+.env.*
+!.env.example
+*.token
+*.key
+**/credentials.json
+**/secrets.json
+
+# ===== Python =====
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+.venv/
+venv/
+env/
+.ipynb_checkpoints/
+.pytest_cache/
+.coverage
+htmlcov/
+.mypy_cache/
+.ruff_cache/
+
+# ===== Notebooks — cópias temporárias do Colab =====
+**/temp/
+**/Cópia*.ipynb
+**/Copy*.ipynb
+
+# ===== Outputs locais (datasets, modelos, checkpoints) =====
+# A pasta files/ é exceção: índice, adapter, protocolos e SFT entram no repositório.
+*.pdf
+!RELATORIO_TECNICO.pdf
+!RELATORIO_TECNICO.html
+*.bin
+*.safetensors
+*.gguf
+*.pt
+*.pth
+*.jsonl
+*.db
+*.sqlite
+*.sqlite3
+adapters/
+checkpoints/
+runs/
+wandb/
+
+# Adapter LoRA + checkpoints da run de fine-tuning
+**/adapter_final/
+**/checkpoint-*/
+**/finetune/
+**/chroma/
+
+# Artefatos de ML da nova fase
+artifacts/data/*.parquet
+artifacts/data/*.verify.parquet
+artifacts/models/**/*.joblib
+!artifacts/data/*.manifest.json
+!artifacts/models/**/model_card.json
+!artifacts/metrics/*.json
+!artifacts/explainability/*.json
+!artifacts/demo/*.json
+
+# Métricas e relatórios gerados pelo notebook de avaliação
+# (versionar manualmente os finais selecionados, não esses dump intermediários)
+**/eval_report.json
+**/eval_sidebyside.md
+**/test_metrics.json
+**/training_meta.json
+
+# ===== IDE =====
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# ===== Sistema =====
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# ===== Logs =====
+*.log
+logs/
+
+# ===== Memória persistente do Claude (estado interno do agente) =====
+.claude/
+
+# files/ precisa vencer as regras de *.pdf, *.bin, *.safetensors, *.jsonl, *.db,
+# *.sqlite3, adapter_final, finetune e chroma. Cada diretório ignorado tem de
+# ser reaberto antes do conteúdo.
+!files/
+!files/**
+!files/chroma/
+!files/chroma/**
+!files/finetune/
+!files/finetune/**
+!files/finetune/**/adapter_final/
+!files/finetune/**/adapter_final/**
