@@ -294,8 +294,7 @@ TechChallenger4/
 ├── artifacts/                       ← data, models, metrics, explainability, rag, demo
 ├── tests/                           ← unit, integration, e2e, regression
 │
-├── 01…10_*.ipynb                    ← pipeline LLM + RAG no Colab (Fase 5)
-└── COLAB_EXECUTAR.ipynb             ← atalho para subir a aplicação no Colab
+└── 01…10_*.ipynb                    ← pipeline LLM + RAG no Colab (Fase 5)
 ```
 
 ---
@@ -318,8 +317,6 @@ TechChallenger4/
 ## Pipeline completo no Colab (Llama + Chroma)
 
 A base de LLM e RAG desta Fase 5 usa fine-tuning QLoRA do Llama 3.2 3B sobre 6414 pares de perguntas e respostas sintéticos derivados de protocolos do Ministério da Saúde, FEBRASGO, OMS e INCA, e RAG sobre 1392 trechos desses protocolos.
-
-**Atalho:** abra [`COLAB_EXECUTAR.ipynb`](COLAB_EXECUTAR.ipynb) no Colab com GPU e execute tudo. Ele clona o repositório, monta o Drive e sobe o Gradio com link público (`share=True`). Com `HF_TOKEN` e GPU carrega o Llama; sem eles, usa o `FakeChatModel`. Não refaz o treino QLoRA.
 
 ### Pré-requisitos
 
